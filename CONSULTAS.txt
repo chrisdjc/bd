@@ -1,0 +1,203 @@
+SENTENCIAS USADAS EN CLASE
+
+CREATE DATABASE test_db;
+
+USE test_db;
+
+CREATE TABLE `usuarios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `login` varchar(30) NOT NULL,
+  `password` varchar(32) NOT NULL,
+  `nickname` varchar(40) NOT NULL,
+  `email` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email_UNIQUE` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `categorias` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre_categoria` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `etiquetas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre_etiqueta` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8;
+
+CREATE TABLE people (
+	person_id int,
+	last_name varchar(255),
+	first_name varchar(255),
+	address varchar(255),
+	city varchar(255) 
+);
+
+CREATE TABLE `posts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `titulo` varchar(130) NOT NULL,
+  `fecha_publicacion` timestamp NULL DEFAULT NULL,
+  `contenido` text NOT NULL,
+  `estatus` char(8) DEFAULT 'activo',
+  `usuario_id` int(11) DEFAULT NULL,
+  `categoria_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `posts_usuarios_idx` (`usuario_id`),
+  KEY `posts_categorias_idx` (`categoria_id`),
+  CONSTRAINT `posts_categorias` FOREIGN KEY (`categoria_id`) REFERENCES `categorias` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `posts_usuarios` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `comentarios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `cuerpo_comentario` text NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  `post_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `comentarios_usuario_idx` (`usuario_id`),
+  KEY `comentarios_post_idx` (`post_id`),
+  CONSTRAINT `comentarios_post` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `comentarios_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `posts_etiquetas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_id` int(11) NOT NULL,
+  `etiqueta_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `postsetiquetas_post_idx` (`post_id`),
+  KEY `postsetiquetas_etiquetas_idx` (`etiqueta_id`),
+  CONSTRAINT `postsetiquetas_etiquetas` FOREIGN KEY (`etiqueta_id`) REFERENCES `etiquetas` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `postsetiquetas_post` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8;
+
+CREATE VIEW v_brasil_customers AS
+    SELECT customer_name, contact_name
+    FROM customers
+    WHERE country = "Brasil";
+
+DROP TABLE people;
+
+DROP DATABASE test_db;
+
+
+SELECT	*
+FROM		posts
+WHERE	id	< 50;
+
+SELECT	*
+FROM		posts
+WHERE	estatus = 'Inactivo';
+
+SELECT	*
+FROM		posts
+WHERE	titulo LIKE '%escandalo%';
+
+SELECT	*
+FROM		posts
+WHERE	fecha_publicacion > '2025-01-01';
+
+SELECT	*
+FROM		posts
+WHERE	fecha_publicacion BETWEEN '2023-01-01' AND '2025-12-31';
+
+SELECT	*
+FROM		posts
+WHERE	YEAR(fecha_publicacion) BETWEEN '2023' AND '2024';
+
+SELECT	*
+FROM		posts
+WHERE	MONTH(fecha_publicacion) = '04';
+
+SELECT	*
+FROM		posts
+WHERE	usuario_id IS NOT NULL;
+
+SELECT	*
+FROM		posts
+WHERE	usuario_id IS NULL;
+
+-- Insert
+INSERT INTO people (last_name, first_name, address, city)
+VALUES ('Hernández', 'Laura', 'Calle 21', 'Monterrey');
+
+-- Update
+UPDATE people
+SET last_name = 'Chávez', city= 'Mérida'
+WHERE person_id = 1;
+
+UPDATE people
+SET first_name = 'Juan'
+WHERE city = 'Mérida';
+
+UPDATE people
+SET first_name = 'Juan';
+
+-- Delete
+DELETE FROM people 
+WHERE person_id = 1;
+
+DELETE FROM people;
+
+-- Select
+SELECT fist_name, last_name FROM people;
+
+-- ORDER BY
+SELECT	*
+FROM		posts
+ORDER BY fecha_publicacion ASC;
+
+SELECT	*
+FROM		posts
+ORDER BY fecha_publicacion DESC;
+
+SELECT	*
+FROM		posts
+ORDER BY titulo ASC;
+
+SELECT	*
+FROM		posts
+ORDER BY titulo DESC;
+
+SELECT	*
+FROM		posts
+ORDER BY usuario_id ASC
+LIMIT 5;
+
+SELECT	MONTHNAME(fecha_publicacion) AS post_month, estatus, COUNT(*) AS post_quantity
+FROM		posts
+GROUP BY estatus, post_month
+ORDER BY post_month;
+
+-- HAVING
+SELECT	MONTHNAME(fecha_publicacion) AS post_month, estatus, COUNT(*) AS post_quantity
+FROM		posts
+WHERE post_quantity > 1
+GROUP BY estatus, post_month
+ORDER BY post_month;
+
+SELECT	MONTHNAME(fecha_publicacion) AS post_month, estatus, COUNT(*) AS post_quantity
+FROM		posts
+GROUP BY estatus, post_month
+HAVING post_quantity > 1
+ORDER BY post_month;
+
+SELECT new_table_projection.date, COUNT(*) AS posts_count
+FROM (
+    SELECT DATE(MIN(fecha_publicacion)) AS date, YEAR(fecha_publicacion) AS post_year
+    FROM posts
+    GROUP BY post_year
+) AS new_table_projection
+GROUP BY new_table_projection.date 
+ORDER BY new_table_projection.date;
+
+SELECT *
+FROM posts
+WHERE fecha_publicacion = (
+	SELECT MAX(fecha_publicacion)
+	FROM posts
+);
+
+SELECT MAX(fecha_publicacion)
+FROM posts;
